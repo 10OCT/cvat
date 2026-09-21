@@ -197,6 +197,7 @@ REST_FRAMEWORK = {
     "VERSION_PARAM": "version",
     "DEFAULT_PAGINATION_CLASS": "cvat.apps.engine.pagination.CustomPagination",
     "PAGE_SIZE": 10,
+    "MAX_PAGE_SIZE": 500,
     "DEFAULT_FILTER_BACKENDS": (
         "cvat.apps.engine.filters.SimpleFilter",
         "cvat.apps.engine.filters.SearchFilter",

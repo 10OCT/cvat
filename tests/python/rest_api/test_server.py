@@ -4,6 +4,7 @@
 
 
 from http import HTTPStatus
+from typing import Any
 
 import pytest
 
@@ -45,21 +46,22 @@ class TestGetSchema:
 @pytest.mark.usefixtures("restore_db_per_class")
 class TestPageSize:
     def test_default_page_size(self, admin_user: str):
-        response = get_method(admin_user, "projects")
+        response = get_method(admin_user, "quality/conflicts")
         assert response.status_code == HTTPStatus.OK
-        assert len(response.json()["results"]) <= 10
+        assert len(response.json()["results"]) == 10
 
-    def test_page_size_is_clamped_to_max(self, admin_user: str):
-        response = get_method(admin_user, "projects", page_size=1000)
+    @pytest.mark.parametrize(
+        "page_size, expected_page_size",
+        [
+            (50, 50),
+            (1000, 100),
+            (0, 10),
+            (-10, 10),
+            ("abc", 10),
+            ("all", 10),
+        ],
+    )
+    def test_page_size(self, admin_user: str, page_size: Any, expected_page_size: int):
+        response = get_method(admin_user, "quality/conflicts", page_size=page_size)
         assert response.status_code == HTTPStatus.OK
-        assert len(response.json()["results"]) <= 500
-
-    def test_page_size_all_is_rejected(self, admin_user: str):
-        response = get_method(admin_user, "projects", page_size="all")
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert "page_size" in response.json()
-
-    def test_invalid_page_size_falls_back_to_default(self, admin_user: str):
-        response = get_method(admin_user, "projects", page_size="abc")
-        assert response.status_code == HTTPStatus.OK
-        assert len(response.json()["results"]) <= 10
+        assert len(response.json()["results"]) == expected_page_size
